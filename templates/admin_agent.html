@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+{% block title %}Agent 系统{% endblock %}
+{% block extra_head %}
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+{% endblock %}
+{% block content %}
+<div id="admin-app" data-page="agent" class="admin-shell">
+    <div class="admin-hero">
+        <div>
+            <p class="eyebrow">Agent System</p>
+            <h1>Agent 调度中枢</h1>
+            <p>工业级 Agent 系统，支持目标规划、工具编排、自主调度与全链路可观测。</p>
+        </div>
+        <div class="action-row wrap">
+            <a class="btn btn-light" href="{{ url_for('admin_bp.admin_dashboard') }}">返回总览</a>
+            <button class="btn" @click="refresh" :disabled="loading">刷新状态</button>
+        </div>
+    </div>
+
+    <div class="flash flash-danger" v-if="error">[[ error ]]</div>
+    <div class="flash flash-success" v-if="message">[[ message ]]</div>
+
+    <!-- 系统健康状态 -->
+    <section class="panel-card" v-if="health">
+        <div class="section-title">
+            <h2>系统健康状态</h2>
+            <span :class="'status-badge status-' + health.status">[[ health.status ]]</span>
+        </div>
+        <div class="metric-grid">
+            <div class="metric-item" v-for="(value, key) in health.metrics" :key="key">
+                <span class="metric-label">[[ key ]]</span>
+                <strong class="metric-value">[[ value ]]</strong>
+            </div>
+        </div>
+        <div v-if="health.anomalies && health.anomalies.length > 0" class="anomaly-list">
+            <h3>⚠️ 检测到 [[ health.anomalies.length ]] 个异常</h3>
+            <div class="anomaly-item" v-for="anomaly in health.anomalies" :key="anomaly.metric">
+                <strong>[[ anomaly.metric ]]</strong>:
+                当前值 [[ anomaly.current_value ]] (阈值: [[ anomaly.threshold ]])
+                <span :class="'severity-' + anomaly.severity">[[ anomaly.severity ]]</span>
+                <p>[[ anomaly.message ]]</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 执行目标 -->
+    <section class="panel-card">
+        <div class="section-title">
+            <h2>执行目标</h2>
+        </div>
+        <div class="goal-form">
+            <select v-model="selectedGoal" class="form-select">
+                <option value="">自定义目标</option>
+                <option value="提升多样性">提升多样性</option>
+                <option value="提升覆盖率">提升覆盖率</option>
+                <option value="提升准确率">提升准确率</option>
+                <option value="补充数据">补充数据</option>
+                <option value="系统健康检查">系统健康检查</option>
+            </select>
+            <input
+                v-if="!selectedGoal"
+                v-model="customGoal"
+                type="text"
+                class="form-input"
+                placeholder="输入自定义目标..."
+            />
+            <button
+                class="btn btn-primary"
+                @click="executeGoal"
+                :disabled="executing || (!selectedGoal && !customGoal)"
+            >
+                [[ executing ? '执行中...' : '执行' ]]
+            </button>
+        </div>
+        <div v-if="executionResult" class="execution-result">
+            <h3>执行结果</h3>
+            <p><strong>目标:</strong> [[ executionResult.goal ]]</p>
+            <p><strong>状态:</strong> <span :class="'status-' + executionResult.status">[[ executionResult.status ]]</span></p>
+            <p><strong>消息:</strong> [[ executionResult.message ]]</p>
+            <details v-if="executionResult.actions && executionResult.actions.length > 0">
+                <summary>执行详情 ([[ executionResult.actions.length ]] 个任务)</summary>
+                <div class="action-list">
+                    <div class="action-item" v-for="(action, idx) in executionResult.actions" :key="idx">
+                        <strong>[[ idx + 1 ]]. [[ action.task_name ]]</strong>
+                        <span :class="'status-' + action.status">[[ action.status ]]</span>
+                        <p>工具: [[ action.tool ]] | 耗时: [[ action.duration_ms ]]ms</p>
+                        <p v-if="action.error" class="error-text">[[ action.error ]]</p>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- 可用工具 -->
+    <section class="panel-card" v-if="status">
+        <div class="section-title">
+            <h2>可用工具</h2>
+            <span>[[ status.registered_tools ]] 个</span>
+        </div>
+        <div class="tool-list">
+            <div class="tool-item" v-for="tool in status.tools" :key="tool.name">
+                <strong>[[ tool.name ]]</strong>
+                <p>[[ tool.description ]]</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 最近决策 -->
+    <section class="panel-card" v-if="decisions && decisions.length > 0">
+        <div class="section-title">
+            <h2>最近决策</h2>
+            <span>[[ decisions.length ]] 条</span>
+        </div>
+        <div class="decision-list">
+            <div class="decision-item" v-for="decision in decisions" :key="decision.timestamp">
+                <div class="decision-header">
+                    <strong>[[ decision.goal ]]</strong>
+                    <span class="timestamp">[[ formatTimestamp(decision.timestamp) ]]</span>
+                </div>
+                <p>[[ decision.result ]]</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 工具调用统计 -->
+    <section class="panel-card" v-if="stats">
+        <div class="section-title">
+            <h2>工具调用统计</h2>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span>总调用次数</span>
+                <strong>[[ stats.total_calls ]]</strong>
+            </div>
+            <div class="stat-item">
+                <span>成功率</span>
+                <strong>[[ (stats.success_rate * 100).toFixed(1) ]]%</strong>
+            </div>
+            <div class="stat-item">
+                <span>平均耗时</span>
+                <strong>[[ stats.avg_duration_ms.toFixed(0) ]]ms</strong>
+            </div>
+        </div>
+        <div v-if="stats.tool_usage" class="tool-usage">
+            <h3>工具使用分布</h3>
+            <div class="usage-item" v-for="(count, tool) in stats.tool_usage" :key="tool">
+                <span>[[ tool ]]</span>
+                <strong>[[ count ]] 次</strong>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+const { createApp } = Vue;
+createApp({
+    delimiters: ['[[', ']]'],
+    data() {
+        return {
+            loading: false,
+            executing: false,
+            error: null,
+            message: null,
+            health: null,
+            status: null,
+            decisions: [],
+            stats: null,
+            selectedGoal: '',
+            customGoal: '',
+            executionResult: null,
+        };
+    },
+    mounted() {
+        this.loadData();
+    },
+    methods: {
+        async loadData() {
+            this.loading = true;
+            this.error = null;
+            try {
+                await Promise.all([
+                    this.loadHealth(),
+                    this.loadStatus(),
+                    this.loadDecisions(),
+                    this.loadStats(),
+                ]);
+            } catch (err) {
+                this.error = err.message || '加载数据失败';
+            } finally {
+                this.loading = false;
+            }
+        },
+        async loadHealth() {
+            const resp = await fetch('/api/v1/admin/agent/health');
+            const json = await resp.json();
+            if (json.code === 200) {
+                this.health = json.data;
+            }
+        },
+        async loadStatus() {
+            const resp = await fetch('/api/v1/admin/agent/status');
+            const json = await resp.json();
+            if (json.code === 200) {
+                this.status = json.data;
+            }
+        },
+        async loadDecisions() {
+            const resp = await fetch('/api/v1/admin/agent/decisions?limit=10');
+            const json = await resp.json();
+            if (json.code === 200) {
+                this.decisions = json.data;
+            }
+        },
+        async loadStats() {
+            const resp = await fetch('/api/v1/admin/agent/stats');
+            const json = await resp.json();
+            if (json.code === 200) {
+                this.stats = json.data;
+            }
+        },
+        async executeGoal() {
+            const goal = this.selectedGoal || this.customGoal;
+            if (!goal) return;
+
+            this.executing = true;
+            this.error = null;
+            this.message = null;
+            this.executionResult = null;
+
+            try {
+                const resp = await fetch('/api/v1/admin/agent/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ goal }),
+                });
+                const json = await resp.json();
+                if (json.code === 200) {
+                    this.executionResult = json.data;
+                    this.message = json.msg;
+                    // 刷新数据
+                    await this.loadData();
+                } else {
+                    this.error = json.msg || '执行失败';
+                }
+            } catch (err) {
+                this.error = err.message || '执行失败';
+            } finally {
+                this.executing = false;
+            }
+        },
+        async refresh() {
+            await this.loadData();
+            this.message = '数据已刷新';
+            setTimeout(() => { this.message = null; }, 2000);
+        },
+        formatTimestamp(ts) {
+            if (!ts) return '';
+            return new Date(ts).toLocaleString('zh-CN');
+        },
+    },
+}).mount('#admin-app');
+</script>
+
+<style>
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #666);
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-badge.status-healthy {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.status-critical {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.anomaly-list {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.anomaly-item {
+    padding: 1rem;
+    margin-top: 0.5rem;
+    background: #fff3cd;
+    border-radius: 0.5rem;
+}
+
+.severity-critical {
+    color: #721c24;
+    font-weight: 600;
+}
+
+.severity-warning {
+    color: #856404;
+    font-weight: 600;
+}
+
+.goal-form {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.form-select, .form-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 0.25rem;
+}
+
+.execution-result {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-secondary, #f8f8f8);
+    border-radius: 0.5rem;
+}
+
+.status-success {
+    color: #155724;
+    font-weight: 600;
+}
+
+.status-failed {
+    color: #721c24;
+    font-weight: 600;
+}
+
+.action-list {
+    margin-top: 1rem;
+}
+
+.action-item {
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    background: white;
+    border-radius: 0.25rem;
+    border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.error-text {
+    color: #721c24;
+    margin-top: 0.5rem;
+}
+
+.tool-list, .decision-list {
+    margin-top: 1rem;
+}
+
+.tool-item, .decision-item {
+    padding: 1rem;
+    margin-top: 0.5rem;
+    background: var(--bg-secondary, #f8f8f8);
+    border-radius: 0.5rem;
+}
+
+.decision-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.timestamp {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #666);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tool-usage {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.usage-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+</style>
+{% endblock %}

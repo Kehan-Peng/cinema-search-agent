@@ -1,0 +1,25 @@
+{
+  "build_behavior_dataset": {
+    "status": "completed",
+    "user_count": 60,
+    "behavior_count": 153,
+    "output_csv": "/Users/pengkehan/projects/movie_recommendation/Python豆瓣电影数据分析可视化系统/behavior_dataset.csv",
+    "inserted_users": 48,
+    "inserted_behaviors": 153,
+    "updated_at": "2026-03-28 18:59:27"
+  },
+  "crawl_movies": {
+    "status": "completed",
+    "movie_count": 0,
+    "pages": 1,
+    "downloaded_covers": 0,
+    "output_csv": "/Users/pengkehan/movie_search_agent/datas.csv",
+    "updated_at": "2026-04-24 14:37:01"
+  },
+  "enrich_summaries": {
+    "status": "completed",
+    "enriched_count": 5,
+    "total_movies": 50,
+    "updated_at": "2026-04-24 13:24:47"
+  }
+}

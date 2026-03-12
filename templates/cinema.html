@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人影院</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-bg: #F8FAFC;
+            --color-surface: #FFFFFF;
+            --color-border: #E2E8F0;
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-text-tertiary: #94A3B8;
+            --color-accent: #3B82F6;
+            --color-accent-hover: #2563EB;
+            --color-accent-light: #DBEAFE;
+            --spacing-unit: 8px;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text-primary);
+            font-size: 14px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 260px;
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            padding: calc(var(--spacing-unit) * 4) 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-logo {
+            padding: 0 calc(var(--spacing-unit) * 3);
+            margin-bottom: calc(var(--spacing-unit) * 5);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--color-accent);
+            display: flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 1.5);
+        }
+
+        .sidebar-logo::before {
+            content: "🎬";
+            font-size: 24px;
+        }
+
+        .nav-section {
+            margin-bottom: calc(var(--spacing-unit) * 5);
+        }
+
+        .nav-label {
+            padding: 0 calc(var(--spacing-unit) * 3);
+            margin-bottom: calc(var(--spacing-unit) * 2);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--color-text-tertiary);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 2);
+            padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3);
+            margin: 0 calc(var(--spacing-unit) * 2);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+        }
+
+        .nav-item:hover {
+            background: var(--color-accent-light);
+            color: var(--color-accent);
+            transform: translateX(2px);
+        }
+
+        .nav-item.active {
+            background: var(--color-accent);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-item.active .nav-icon {
+            stroke-width: 2;
+        }
+
+        .nav-icon {
+            width: 18px;
+            height: 18px;
+            stroke-width: 1.5;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: calc(var(--spacing-unit) * 5);
+            max-width: 1400px;
+        }
+
+        .page-header {
+            margin-bottom: calc(var(--spacing-unit) * 6);
+            padding-bottom: calc(var(--spacing-unit) * 4);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: calc(var(--spacing-unit) * 1.5);
+            color: var(--color-accent);
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 15px;
+            color: var(--color-text-secondary);
+            font-weight: 400;
+        }
+
+        /* 筛选器 */
+        .filter-bar {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 2);
+            margin-bottom: calc(var(--spacing-unit) * 5);
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            border: 2px solid var(--color-border);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-accent-light);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-btn:hover::before {
+            transform: translateX(0);
+        }
+
+        .filter-btn.active {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+            color: white;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active::before {
+            display: none;
+        }
+
+        /* 电影网格 */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: calc(var(--spacing-unit) * 3);
+        }
+
+        .movie-card {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .movie-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            background: var(--color-border);
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .movie-card:hover .movie-poster {
+            box-shadow: var(--shadow-md);
+        }
+
+        .movie-title {
+            margin-top: calc(var(--spacing-unit) * 1.5);
+            font-size: 14px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .movie-meta {
+            margin-top: calc(var(--spacing-unit) * 0.5);
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 1);
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 2px;
+            color: var(--color-accent);
+            font-size: 13px;
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: calc(var(--spacing-unit) * 4);
+            margin-bottom: calc(var(--spacing-unit) * 6);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-accent-light) 100%);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: calc(var(--spacing-unit) * 4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            transition: transform 0.5s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--color-accent);
+        }
+
+        .stat-card:hover::before {
+            transform: translate(-25%, -25%);
+        }
+
+        .stat-value {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: calc(var(--spacing-unit) * 1);
+            color: var(--color-accent);
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 表格 */
+        .table-container {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: var(--color-bg);
+        }
+
+        .table th {
+            padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3);
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-tertiary);
+        }
+
+        .table td {
+            padding: calc(var(--spacing-unit) * 2.5) calc(var(--spacing-unit) * 3);
+            border-top: 1px solid var(--color-border);
+            font-size: 13px;
+        }
+
+        .table tr:hover {
+            background: var(--color-bg);
+        }
+
+        .table a {
+            color: var(--color-accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .table a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--color-accent);
+            transition: width 0.3s ease;
+        }
+
+        .table a:hover {
+            color: var(--color-accent-hover);
+        }
+
+        .table a:hover::after {
+            width: 100%;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 1.5);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .badge-rank {
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-watched {
+            background: var(--color-accent-light);
+            color: var(--color-accent);
+            font-weight: 600;
+        }
+
+        .badge-unwatched {
+            background: var(--color-bg);
+            color: var(--color-text-tertiary);
+        }
+
+        /* 横向滚动 */
+        .horizontal-scroll {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 3);
+            overflow-x: auto;
+            padding-bottom: calc(var(--spacing-unit) * 2);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-track {
+            background: var(--color-bg);
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 2px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text-tertiary);
+        }
+
+        /* 加载和空状态 */
+        .loading, .empty-state {
+            text-align: center;
+            padding: calc(var(--spacing-unit) * 10) 0;
+            color: var(--color-text-tertiary);
+            font-size: 14px;
+        }
+
+        /* 浮动按钮 */
+        .fab {
+            position: fixed;
+            bottom: calc(var(--spacing-unit) * 5);
+            right: calc(var(--spacing-unit) * 5);
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+            color: white;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .fab::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5);
+        }
+
+        .fab:active {
+            transform: scale(0.95) rotate(90deg);
+        }
+
+        .fab svg {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: calc(var(--spacing-unit) * 3);
+            }
+
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: calc(var(--spacing-unit) * 2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-logo">个人影院</div>
+
+            <div class="nav-section">
+                <div class="nav-label">浏览</div>
+                <div class="nav-item" :class="{active: currentView === 'records'}" @click="currentView = 'records'">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2v20M2 12h20"/>
+                    </svg>
+                    观影存档
+                </div>
+                <div class="nav-item" :class="{active: currentView === 'stats'}" @click="currentView = 'stats'">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 20V10M12 20V4M6 20v-6"/>
+                    </svg>
+                    年度数据
+                </div>
+                <div class="nav-item" :class="{active: currentView === 'watchlist'}" @click="currentView = 'watchlist'">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    想看
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">发现</div>
+                <div class="nav-item" :class="{active: currentView === 'top250'}" @click="currentView = 'top250'">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    豆瓣 Top 250
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 观影存档 -->
+            <div v-if="currentView === 'records'">
+                <div class="page-header">
+                    <h1 class="page-title">观影存档</h1>
+                    <p class="page-subtitle">记录每一次观影体验</p>
+                </div>
+
+                <div class="filter-bar">
+                    <button class="filter-btn" :class="{active: selectedYear === null}" @click="selectYear(null)">全部</button>
+                    <button class="filter-btn" :class="{active: selectedYear === 2025}" @click="selectYear(2025)">2025</button>
+                    <button class="filter-btn" :class="{active: selectedYear === 2024}" @click="selectYear(2024)">2024</button>
+                    <button class="filter-btn" :class="{active: selectedYear === 2023}" @click="selectYear(2023)">2023</button>
+                </div>
+
+                <div v-if="loading" class="loading">加载中...</div>
+                <div v-else-if="watchRecords.length === 0" class="empty-state">暂无观影记录</div>
+                <div v-else class="movie-grid">
+                    <div v-for="record in watchRecords" :key="record.id" class="movie-card" @click="viewMovie(record.movie.id)">
+                        <img :src="record.movie.cover_url || '/static/placeholder.jpg'" :alt="record.movie.title" class="movie-poster">
+                        <div class="movie-title">{{ record.movie.title }}</div>
+                        <div class="movie-meta">
+                            <div class="star-rating" v-if="record.rating">
+                                <span v-for="n in Math.floor(record.rating / 2)" :key="n">★</span>
+                            </div>
+                            <span>{{ record.watch_date }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 年度数据 -->
+            <div v-if="currentView === 'stats'">
+                <div class="page-header">
+                    <h1 class="page-title">年度数据</h1>
+                    <p class="page-subtitle">回顾你的观影历程</p>
+                </div>
+
+                <div class="filter-bar">
+                    <button class="filter-btn" :class="{active: statsYear === 2025}" @click="loadYearlyStats(2025)">2025</button>
+                    <button class="filter-btn" :class="{active: statsYear === 2024}" @click="loadYearlyStats(2024)">2024</button>
+                    <button class="filter-btn" :class="{active: statsYear === 2023}" @click="loadYearlyStats(2023)">2023</button>
+                </div>
+
+                <div v-if="yearlyStats">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">{{ yearlyStats.watch_count }}</div>
+                            <div class="stat-label">观影数量</div>
+                        </div>
+                    </div>
+
+                    <div v-if="yearlyStats.favorites.length > 0">
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 24px;">年度最爱</h3>
+                        <div class="horizontal-scroll">
+                            <div v-for="fav in yearlyStats.favorites" :key="fav.movie.id" class="movie-card" style="min-width: 160px;" @click="viewMovie(fav.movie.id)">
+                                <img :src="fav.movie.cover_url || '/static/placeholder.jpg'" :alt="fav.movie.title" class="movie-poster">
+                                <div class="movie-title">{{ fav.movie.title }}</div>
+                                <div class="movie-meta">
+                                    <div class="star-rating">
+                                        <span v-for="n in Math.floor(fav.rating / 2)" :key="n">★</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 想看列表 -->
+            <div v-if="currentView === 'watchlist'">
+                <div class="page-header">
+                    <h1 class="page-title">想看</h1>
+                    <p class="page-subtitle">收藏感兴趣的电影</p>
+                </div>
+
+                <div v-if="loading" class="loading">加载中...</div>
+                <div v-else-if="watchlist.length === 0" class="empty-state">暂无想看电影</div>
+                <div v-else class="movie-grid">
+                    <div v-for="item in watchlist" :key="item.id" class="movie-card" @click="viewMovie(item.movie.id)">
+                        <img :src="item.movie.cover_url || '/static/placeholder.jpg'" :alt="item.movie.title" class="movie-poster">
+                        <div class="movie-title">{{ item.movie.title }}</div>
+                        <div class="movie-meta">
+                            <span>{{ item.movie.rate }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 豆瓣Top 250 -->
+            <div v-if="currentView === 'top250'">
+                <div class="page-header">
+                    <h1 class="page-title">豆瓣 Top 250</h1>
+                    <p class="page-subtitle">经典电影榜单</p>
+                </div>
+
+                <div v-if="loading" class="loading">加载中...</div>
+                <div v-else class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">排名</th>
+                                <th>片名</th>
+                                <th style="width: 80px;">评分</th>
+                                <th>导演</th>
+                                <th>类型</th>
+                                <th style="width: 100px;">年份</th>
+                                <th style="width: 80px;">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="movie in top250Movies" :key="movie.id">
+                                <td><span class="badge badge-rank">{{ movie.rank }}</span></td>
+                                <td><a href="#" @click.prevent="viewMovie(movie.id)">{{ movie.title }}</a></td>
+                                <td>{{ movie.rate }}</td>
+                                <td>{{ movie.directors }}</td>
+                                <td>{{ movie.types }}</td>
+                                <td>{{ movie.release_year }}</td>
+                                <td>
+                                    <span class="badge badge-watched" v-if="watchStatus[movie.id]">已看</span>
+                                    <span class="badge badge-unwatched" v-else>未看</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 浮动按钮 -->
+        <button class="fab" @click="quickRecord" title="快速记录">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentView: 'records',
+                    selectedYear: null,
+                    statsYear: 2025,
+                    loading: false,
+                    watchRecords: [],
+                    watchlist: [],
+                    yearlyStats: null,
+                    top250Movies: [],
+                    watchStatus: {}
+                };
+            },
+            mounted() {
+                this.loadWatchRecords();
+            },
+            methods: {
+                async loadWatchRecords() {
+                    this.loading = true;
+                    try {
+                        const url = this.selectedYear
+                            ? `/api/v1/cinema/watch-records?year=${this.selectedYear}`
+                            : '/api/v1/cinema/watch-records';
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        if (data.code === 200) {
+                            this.watchRecords = data.data;
+                        }
+                    } catch (error) {
+                        console.error('加载观影记录失败:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadWatchlist() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('/api/v1/cinema/watchlist');
+                        const data = await response.json();
+                        if (data.code === 200) {
+                            this.watchlist = data.data;
+                        }
+                    } catch (error) {
+                        console.error('加载想看列表失败:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadYearlyStats(year) {
+                    this.statsYear = year;
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/api/v1/cinema/yearly-stats/${year}`);
+                        const data = await response.json();
+                        if (data.code === 200) {
+                            this.yearlyStats = data.data;
+                        }
+                    } catch (error) {
+                        console.error('加载年度统计失败:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadTop250() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('/api/v1/cinema/top250');
+                        const data = await response.json();
+                        if (data.code === 200) {
+                            this.top250Movies = data.data.movies;
+                            this.watchStatus = data.data.watch_status;
+                        }
+                    } catch (error) {
+                        console.error('加载Top 250失败:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                selectYear(year) {
+                    this.selectedYear = year;
+                    this.loadWatchRecords();
+                },
+                viewMovie(movieId) {
+                    window.location.href = `/movie/${movieId}`;
+                },
+                quickRecord() {
+                    alert('快速记录功能开发中...');
+                }
+            },
+            watch: {
+                currentView(newView) {
+                    if (newView === 'records') {
+                        this.loadWatchRecords();
+                    } else if (newView === 'watchlist') {
+                        this.loadWatchlist();
+                    } else if (newView === 'stats') {
+                        this.loadYearlyStats(this.statsYear);
+                    } else if (newView === 'top250') {
+                        this.loadTop250();
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

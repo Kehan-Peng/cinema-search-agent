@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}首页 - 智能电影推荐系统{% endblock %}
+{% block content %}
+
+<!-- Hero 区域 -->
+<section class="hero-section">
+    <h1 class="hero-title">智能电影推荐系统</h1>
+    <p class="hero-subtitle">基于内容分析与协同过滤的 AI 推荐引擎，为你精准推荐心仪的电影</p>
+    <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('search') }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            开始搜索
+        </a>
+        {% if current_user_email %}
+        <a class="btn btn-secondary" href="{{ url_for('get_recommend') }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            我的推荐
+        </a>
+        <a class="btn btn-secondary" href="{{ url_for('admin_bp.cinema') }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+                <polyline points="17 2 12 7 7 2"></polyline>
+            </svg>
+            个人影院
+        </a>
+        {% else %}
+        <a class="btn btn-secondary" href="{{ url_for('login') }}">登录体验个性化推荐</a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- 统计数据卡片 -->
+{% if current_user_email %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">已评分电影</div>
+        <div class="stat-value">{{ user_stats.rated_count|default(0) }}</div>
+        <div class="stat-trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            </svg>
+            本周 +3
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">收藏电影</div>
+        <div class="stat-value">{{ user_stats.favorite_count|default(0) }}</div>
+        <div class="stat-trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            </svg>
+            本周 +2
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">观看记录</div>
+        <div class="stat-value">{{ user_stats.watched_count|default(0) }}</div>
+        <div class="stat-trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            </svg>
+            本周 +5
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">推荐准确率</div>
+        <div class="stat-value">85%</div>
+        <div class="stat-trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            </svg>
+            提升 2%
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 个性化推荐区域 -->
+{% if current_user_email and recommend_list %}
+<section class="mb-8">
+    <div class="section-header">
+        <h2 class="section-title">为你推荐</h2>
+        <a class="section-link" href="{{ url_for('get_recommend') }}">
+            查看更多
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </a>
+    </div>
+    <div class="movie-grid">
+        {% for movie in recommend_list %}
+        <article class="movie-card">
+            <a href="{{ url_for('movie', movie_id=movie.id) }}">
+                <img class="movie-cover"
+                     src="{{ movie.cover_url or url_for('static', filename='cover/default.svg') }}"
+                     alt="{{ movie.title }}"
+                     loading="lazy">
+                <div class="movie-info">
+                    <h3 class="movie-title">{{ movie.title }}</h3>
+                    <div class="movie-meta">
+                        <span class="movie-rating">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            {{ '%.1f'|format(movie.rate) }}
+                        </span>
+                    </div>
+                    {% if movie.reason %}
+                    <p class="movie-reason">{{ movie.reason }}</p>
+                    {% endif %}
+                </div>
+            </a>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- 高分电影榜单 -->
+<section>
+    <div class="section-header">
+        <h2 class="section-title">热门高分电影</h2>
+        <span class="text-muted text-small">按评分与热度排序</span>
+    </div>
+    <div class="movie-grid">
+        {% for movie in top_movies %}
+        <article class="movie-card">
+            <a href="{{ url_for('movie', movie_id=movie.id) }}">
+                <img class="movie-cover"
+                     src="{{ movie.cover_url or url_for('static', filename='cover/default.svg') }}"
+                     alt="{{ movie.title }}"
+                     loading="lazy">
+                <div class="movie-info">
+                    <h3 class="movie-title">{{ movie.title }}</h3>
+                    <div class="movie-meta">
+                        <span class="movie-rating">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            {{ '%.1f'|format(movie.rate) }}
+                        </span>
+                    </div>
+                    <p class="text-muted text-small">{{ movie.types }}</p>
+                </div>
+            </a>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock %}

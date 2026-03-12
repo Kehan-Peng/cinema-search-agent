@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导演详情</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-bg: #FAFAFA;
+            --color-surface: #FFFFFF;
+            --color-border: #E8E8E8;
+            --color-text-primary: #1A1A1A;
+            --color-text-secondary: #666666;
+            --color-text-tertiary: #999999;
+            --color-accent: #2C2C2C;
+            --spacing-unit: 8px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text-primary);
+            font-size: 14px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: calc(var(--spacing-unit) * 6);
+        }
+
+        .director-header {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: calc(var(--spacing-unit) * 6);
+            margin-bottom: calc(var(--spacing-unit) * 4);
+            display: flex;
+            gap: calc(var(--spacing-unit) * 6);
+        }
+
+        .director-avatar {
+            width: 180px;
+            height: 180px;
+            border-radius: var(--radius-lg);
+            object-fit: cover;
+            background: var(--color-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .director-info {
+            flex: 1;
+        }
+
+        .director-name {
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: calc(var(--spacing-unit) * 1);
+        }
+
+        .director-name-en {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            margin-bottom: calc(var(--spacing-unit) * 4);
+        }
+
+        .director-stats {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 6);
+            margin-bottom: calc(var(--spacing-unit) * 4);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: calc(var(--spacing-unit) * 0.5);
+        }
+
+        .bio-section {
+            margin-top: calc(var(--spacing-unit) * 4);
+        }
+
+        .bio-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: calc(var(--spacing-unit) * 2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-tertiary);
+        }
+
+        .bio-item {
+            display: flex;
+            margin-bottom: calc(var(--spacing-unit) * 1.5);
+            font-size: 14px;
+        }
+
+        .bio-label {
+            color: var(--color-text-secondary);
+            min-width: 80px;
+        }
+
+        .bio-value {
+            color: var(--color-text-primary);
+        }
+
+        .bio-text {
+            color: var(--color-text-secondary);
+            line-height: 1.8;
+            margin-top: calc(var(--spacing-unit) * 2);
+        }
+
+        .works-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: calc(var(--spacing-unit) * 6);
+            margin-bottom: calc(var(--spacing-unit) * 4);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: calc(var(--spacing-unit) * 4);
+        }
+
+        .genre-tabs {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 1.5);
+            margin-bottom: calc(var(--spacing-unit) * 4);
+            flex-wrap: wrap;
+        }
+
+        .genre-tab {
+            padding: calc(var(--spacing-unit) * 1.25) calc(var(--spacing-unit) * 2.5);
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .genre-tab:hover {
+            border-color: var(--color-accent);
+            color: var(--color-text-primary);
+        }
+
+        .genre-tab.active {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+            color: white;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: calc(var(--spacing-unit) * 3);
+        }
+
+        .movie-card {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .movie-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            background: var(--color-border);
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .movie-card:hover .movie-poster {
+            box-shadow: var(--shadow-md);
+        }
+
+        .movie-title {
+            margin-top: calc(var(--spacing-unit) * 1.5);
+            font-size: 14px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .movie-meta {
+            margin-top: calc(var(--spacing-unit) * 0.5);
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 1);
+        }
+
+        .badge {
+            display: inline-flex;
+            padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 1.5);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--color-accent);
+            color: white;
+        }
+
+        .photos-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: calc(var(--spacing-unit) * 6);
+        }
+
+        .horizontal-scroll {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 3);
+            overflow-x: auto;
+            padding-bottom: calc(var(--spacing-unit) * 2);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-track {
+            background: var(--color-bg);
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 2px;
+        }
+
+        .photo-item {
+            min-width: 240px;
+            height: 135px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .photo-item:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-md);
+        }
+
+        .fullscreen-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .viewer-header {
+            height: 60px;
+            padding: 0 calc(var(--spacing-unit) * 3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            color: white;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        .page-indicator {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .viewer-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(var(--spacing-unit) * 4);
+        }
+
+        .fullscreen-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .loading, .empty-state {
+            text-align: center;
+            padding: calc(var(--spacing-unit) * 10) 0;
+            color: var(--color-text-tertiary);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container" v-if="director">
+            <div class="director-header">
+                <img :src="director.avatar_url || '/static/placeholder-avatar.jpg'" :alt="director.name" class="director-avatar">
+                <div class="director-info">
+                    <h1 class="director-name">{{ director.name }}</h1>
+                    <div class="director-name-en" v-if="director.name_en">{{ director.name_en }}</div>
+
+                    <div class="director-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ director.movie_count }}</div>
+                            <div class="stat-label">相关电影</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ director.representative_works.length }}</div>
+                            <div class="stat-label">代表作品</div>
+                        </div>
+                    </div>
+
+                    <div class="bio-section">
+                        <div class="bio-title">人物简介</div>
+                        <div class="bio-item" v-if="director.gender">
+                            <span class="bio-label">性别</span>
+                            <span class="bio-value">{{ director.gender }}</span>
+                        </div>
+                        <div class="bio-item" v-if="director.birth_date">
+                            <span class="bio-label">出生日期</span>
+                            <span class="bio-value">{{ director.birth_date }}</span>
+                        </div>
+                        <div class="bio-item" v-if="director.birth_place">
+                            <span class="bio-label">出生地</span>
+                            <span class="bio-value">{{ director.birth_place }}</span>
+                        </div>
+                        <div class="bio-item" v-if="director.representative_works.length > 0">
+                            <span class="bio-label">代表作</span>
+                            <span class="bio-value">{{ director.representative_works.join('、') }}</span>
+                        </div>
+                        <div class="bio-text" v-if="director.bio">{{ director.bio }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="works-section">
+                <h2 class="section-title">相关影视作品</h2>
+
+                <div class="genre-tabs">
+                    <button class="genre-tab" :class="{active: selectedGenre === null}" @click="selectedGenre = null">
+                        全部 ({{ director.movies.length }})
+                    </button>
+                    <button class="genre-tab" :class="{active: selectedGenre === genre}"
+                         v-for="genre in genres" :key="genre" @click="selectedGenre = genre">
+                        {{ genre }} ({{ getMoviesByGenre(genre).length }})
+                    </button>
+                </div>
+
+                <div class="movie-grid">
+                    <div v-for="movie in filteredMovies" :key="movie.id" class="movie-card" @click="viewMovie(movie.id)">
+                        <img :src="movie.cover_url || '/static/placeholder.jpg'" :alt="movie.title" class="movie-poster">
+                        <div class="movie-title">{{ movie.title }}</div>
+                        <div class="movie-meta">
+                            <span class="badge">{{ movie.rate }}</span>
+                            <span v-if="movie.release_year">{{ movie.release_year }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photos-section" v-if="photos.length > 0">
+                <h2 class="section-title">相关剧照</h2>
+                <div class="horizontal-scroll">
+                    <img v-for="(photo, index) in photos" :key="index"
+                         :src="photo" class="photo-item"
+                         @click="openFullscreen(index)">
+                </div>
+            </div>
+        </div>
+
+        <div v-else-if="loading" class="loading">加载中...</div>
+
+        <div v-if="fullscreenIndex !== null" class="fullscreen-viewer" @click="closeFullscreen">
+            <div class="viewer-header">
+                <button class="close-btn" @click="closeFullscreen">×</button>
+                <div class="page-indicator">{{ fullscreenIndex + 1 }} / {{ photos.length }}</div>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="viewer-content">
+                <img :src="photos[fullscreenIndex]" class="fullscreen-image">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    director: null,
+                    loading: true,
+                    selectedGenre: null,
+                    fullscreenIndex: null,
+                    photos: []
+                };
+            },
+            computed: {
+                genres() {
+                    if (!this.director || !this.director.movies) return [];
+                    const genreSet = new Set();
+                    this.director.movies.forEach(movie => {
+                        if (movie.types) {
+                            movie.types.split('/').forEach(genre => {
+                                if (genre.trim()) genreSet.add(genre.trim());
+                            });
+                        }
+                    });
+                    return Array.from(genreSet).sort();
+                },
+                filteredMovies() {
+                    if (!this.director || !this.director.movies) return [];
+                    if (this.selectedGenre === null) return this.director.movies;
+                    return this.director.movies.filter(movie => {
+                        return movie.types && movie.types.includes(this.selectedGenre);
+                    });
+                }
+            },
+            mounted() {
+                this.loadDirector();
+            },
+            methods: {
+                async loadDirector() {
+                    this.loading = true;
+                    try {
+                        const pathParts = window.location.pathname.split('/');
+                        const identifier = pathParts[pathParts.length - 1];
+                        let url;
+                        if (/^\d+$/.test(identifier)) {
+                            url = `/api/v1/cinema/directors/${identifier}`;
+                        } else {
+                            url = `/api/v1/cinema/directors/by-name/${encodeURIComponent(identifier)}`;
+                        }
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        if (data.code === 200) {
+                            this.director = data.data;
+                            this.photos = this.director.movies
+                                .filter(m => m.cover_url)
+                                .slice(0, 10)
+                                .map(m => m.cover_url);
+                        } else {
+                            alert('导演信息加载失败');
+                        }
+                    } catch (error) {
+                        console.error('加载导演信息失败:', error);
+                        alert('加载失败，请稍后重试');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                getMoviesByGenre(genre) {
+                    if (!this.director || !this.director.movies) return [];
+                    return this.director.movies.filter(movie => {
+                        return movie.types && movie.types.includes(genre);
+                    });
+                },
+                viewMovie(movieId) {
+                    window.location.href = `/movie/${movieId}`;
+                },
+                openFullscreen(index) {
+                    this.fullscreenIndex = index;
+                },
+                closeFullscreen() {
+                    this.fullscreenIndex = null;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
