@@ -14,18 +14,22 @@
         }
 
         :root {
-            --color-bg: #FAFAFA;
+            --color-bg: #F8FAFC;
             --color-surface: #FFFFFF;
-            --color-border: #E8E8E8;
-            --color-text-primary: #1A1A1A;
-            --color-text-secondary: #666666;
-            --color-text-tertiary: #999999;
-            --color-accent: #2C2C2C;
+            --color-border: #E2E8F0;
+            --color-text-primary: #1E293B;
+            --color-text-secondary: #64748B;
+            --color-text-tertiary: #94A3B8;
+            --color-accent: #3B82F6;
+            --color-accent-hover: #2563EB;
+            --color-accent-light: #DBEAFE;
             --spacing-unit: 8px;
-            --radius-md: 8px;
-            --radius-lg: 12px;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
 
         body {
@@ -37,6 +41,86 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* 顶部导航栏 */
+        .top-nav {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: calc(var(--spacing-unit) * 2) 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 calc(var(--spacing-unit) * 6);
+            display: flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 3);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 1);
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+            transform: translateX(-2px);
+        }
+
+        .nav-actions {
+            margin-left: auto;
+            display: flex;
+            gap: calc(var(--spacing-unit) * 2);
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 1.5);
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+
+        .action-btn.primary {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--color-accent-hover);
+            border-color: var(--color-accent-hover);
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -44,13 +128,25 @@
         }
 
         .director-header {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-accent-light) 100%);
+            border: 2px solid var(--color-border);
             border-radius: var(--radius-lg);
             padding: calc(var(--spacing-unit) * 6);
             margin-bottom: calc(var(--spacing-unit) * 4);
             display: flex;
             gap: calc(var(--spacing-unit) * 6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .director-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
         }
 
         .director-avatar {
@@ -59,11 +155,16 @@
             border-radius: var(--radius-lg);
             object-fit: cover;
             background: var(--color-border);
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            z-index: 1;
+            border: 3px solid white;
         }
 
         .director-info {
             flex: 1;
+            position: relative;
+            z-index: 1;
         }
 
         .director-name {
@@ -94,6 +195,7 @@
             font-size: 28px;
             font-weight: 600;
             letter-spacing: -0.02em;
+            color: var(--color-accent);
         }
 
         .stat-label {
@@ -180,6 +282,8 @@
             background: var(--color-accent);
             border-color: var(--color-accent);
             color: white;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
         .movie-grid {
@@ -347,6 +451,36 @@
 </head>
 <body>
     <div id="app">
+        <!-- 顶部导航栏 -->
+        <div class="top-nav">
+            <div class="nav-container">
+                <a href="javascript:history.back()" class="back-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    返回
+                </a>
+                <div class="nav-actions">
+                    <button class="action-btn" @click="shareDirector">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        分享
+                    </button>
+                    <button class="action-btn primary" @click="followDirector">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        关注导演
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="container" v-if="director">
             <div class="director-header">
                 <img :src="director.avatar_url || '/static/placeholder-avatar.jpg'" :alt="director.name" class="director-avatar">
@@ -518,6 +652,21 @@
                 },
                 closeFullscreen() {
                     this.fullscreenIndex = null;
+                },
+                shareDirector() {
+                    if (navigator.share) {
+                        navigator.share({
+                            title: this.director.name,
+                            text: `查看导演 ${this.director.name} 的作品`,
+                            url: window.location.href
+                        }).catch(() => {});
+                    } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        alert('链接已复制到剪贴板');
+                    }
+                },
+                followDirector() {
+                    alert('关注功能开发中...');
                 }
             }
         }).mount('#app');

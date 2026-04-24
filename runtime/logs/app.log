@@ -9,3 +9,17 @@ Traceback (most recent call last):
   File "/opt/miniconda3/envs/tf_env/lib/python3.9/pathlib.py", line 1038, in _opener
     return self._accessor.open(self, flags, mode)
 FileNotFoundError: [Errno 2] No such file or directory: '/Users/pengkehan/projects/movie_recommendation/Python豆瓣电影数据分析可视化系统/comments_dataset.csv'
+2026-04-24 21:01:08,881 | ERROR | app | admin job failed: comments
+Traceback (most recent call last):
+  File "/Users/pengkehan/cinema_search_agent/myutils/admin_api.py", line 84, in runner
+    result = target(**kwargs)
+  File "/Users/pengkehan/cinema_search_agent/myutils/crawler/jobs.py", line 133, in crawl_movie_comments
+    raise FileNotFoundError(f"未找到电影数据文件: {movie_csv}")
+FileNotFoundError: 未找到电影数据文件: /Users/pengkehan/cinema_search_agent/datas.csv
+2026-04-24 21:01:10,341 | ERROR | app | admin job failed: behaviors
+Traceback (most recent call last):
+  File "/Users/pengkehan/cinema_search_agent/myutils/admin_api.py", line 84, in runner
+    result = target(**kwargs)
+  File "/Users/pengkehan/cinema_search_agent/myutils/crawler/jobs.py", line 200, in build_behavior_dataset
+    raise FileNotFoundError(f"未找到电影数据文件: {movie_csv}")
+FileNotFoundError: 未找到电影数据文件: /Users/pengkehan/cinema_search_agent/datas.csv

@@ -4,87 +4,141 @@
 <section class="detail-layout">
     <article class="detail-card">
         <div class="detail-header">
-            <img class="movie-cover large" src="{{ movie.cover_url or url_for('static', filename='cover/default.svg') }}" alt="{{ movie.title }}">
-            <div>
-                <h1>{{ movie.title }}</h1>
-                <p><strong>评分：</strong>{{ '%.1f'|format(movie.rate) }}</p>
-                <p><strong>类型：</strong>{{ movie.types }}</p>
-                <p><strong>导演：</strong>{{ movie.directors }}</p>
-                <p><strong>主演：</strong>{{ movie.casts }}</p>
-                <p><strong>地区：</strong>{{ movie.country }}</p>
-                <p><strong>上映年份：</strong>{{ movie.release_year }}</p>
-                <p><strong>片长：</strong>{{ movie.duration }} 分钟</p>
+            <div class="detail-cover">
+                <img src="{{ movie.cover_url or url_for('static', filename='cover/default.svg') }}" alt="{{ movie.title }}">
             </div>
-        </div>
-        <div class="detail-section">
-            <h3>剧情简介</h3>
-            <p>{{ movie.summary }}</p>
+            <div class="detail-content">
+                <h1 class="detail-title">{{ movie.title }}</h1>
+                <div class="detail-meta">
+                    <span style="display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-2) var(--space-3); background: var(--color-accent); color: white; border-radius: var(--radius-sm); font-weight: var(--font-medium);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        {{ '%.1f'|format(movie.rate) }}
+                    </span>
+                    <span>{{ movie.types }}</span>
+                    <span>{{ movie.release_year }}</span>
+                    <span>{{ movie.duration }} 分钟</span>
+                </div>
+                <div class="detail-section">
+                    <div style="display: grid; gap: var(--space-3); margin-bottom: var(--space-4);">
+                        <div style="display: flex; gap: var(--space-3);">
+                            <span style="color: var(--color-text-tertiary); min-width: 60px;">导演</span>
+                            <span>{{ movie.directors }}</span>
+                        </div>
+                        <div style="display: flex; gap: var(--space-3);">
+                            <span style="color: var(--color-text-tertiary); min-width: 60px;">主演</span>
+                            <span>{{ movie.casts }}</span>
+                        </div>
+                        <div style="display: flex; gap: var(--space-3);">
+                            <span style="color: var(--color-text-tertiary); min-width: 60px;">地区</span>
+                            <span>{{ movie.country }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <h3>剧情简介</h3>
+                    <p style="line-height: 1.8; color: var(--color-text-secondary);">{{ movie.summary }}</p>
+                </div>
+            </div>
         </div>
     </article>
 
     <aside class="side-card">
-        <h3>我的行为</h3>
+        <h3 style="font-size: var(--text-lg); font-weight: var(--font-medium); margin-bottom: var(--space-4);">我的行为</h3>
         {% if current_user_email %}
         <div class="movie-behavior" data-movie-id="{{ movie.id }}">
-            <p class="helper-text">点击按钮可记录评分 / 收藏 / 观看行为</p>
+            <p class="text-muted text-small mb-4">记录你的观影体验</p>
             <div class="score-star">
                 {% for score in [10, 9, 8, 7, 6, 5] %}
                 <button type="button" class="star-btn {% if user_behaviors.score == score %}active{% endif %}" data-score="{{ score }}">{{ score }}分</button>
                 {% endfor %}
             </div>
-            <div class="action-row wrap">
-                <button type="button" class="btn btn-secondary behavior-btn {% if user_behaviors.collected %}is-done{% endif %}" data-behavior-type="2">
+            <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
+                <button type="button" class="btn btn-secondary behavior-btn {% if user_behaviors.collected %}is-done{% endif %}" data-behavior-type="2" style="width: 100%; justify-content: center;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
                     {% if user_behaviors.collected %}已收藏{% else %}收藏{% endif %}
                 </button>
-                <button type="button" class="btn btn-secondary behavior-btn {% if user_behaviors.watched %}is-done{% endif %}" data-behavior-type="3">
+                <button type="button" class="btn btn-secondary behavior-btn {% if user_behaviors.watched %}is-done{% endif %}" data-behavior-type="3" style="width: 100%; justify-content: center;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
                     {% if user_behaviors.watched %}已观看{% else %}标记已观看{% endif %}
                 </button>
             </div>
-            <div id="behavior-message" class="helper-text"></div>
+            <div id="behavior-message" class="text-small mt-4"></div>
         </div>
         {% else %}
-        <p>登录后可评分、收藏并生成个性化推荐。</p>
-        <a class="btn" href="{{ url_for('login', next=request.url) }}">立即登录</a>
+        <p class="text-muted mb-4">登录后可评分、收藏并生成个性化推荐</p>
+        <a class="btn btn-primary" href="{{ url_for('login', next=request.url) }}" style="width: 100%; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            立即登录
+        </a>
         {% endif %}
     </aside>
 </section>
 
 <section>
-    <div class="section-title">
-        <h2>相似电影推荐</h2>
-        <span>基于内容相似度</span>
+    <div class="section-header">
+        <h2 class="section-title">相似电影推荐</h2>
+        <span class="text-muted text-small">基于内容相似度</span>
     </div>
     <div class="movie-grid">
         {% for recommended_movie in recommendations %}
         <article class="movie-card">
             <a href="{{ url_for('movie', movie_id=recommended_movie.id) }}">
-                <img class="movie-cover" src="{{ recommended_movie.cover_url or url_for('static', filename='cover/default.svg') }}" alt="{{ recommended_movie.title }}">
-                <h3>{{ recommended_movie.title }}</h3>
+                <img class="movie-cover"
+                     src="{{ recommended_movie.cover_url or url_for('static', filename='cover/default.svg') }}"
+                     alt="{{ recommended_movie.title }}"
+                     loading="lazy">
+                <div class="movie-info">
+                    <h3 class="movie-title">{{ recommended_movie.title }}</h3>
+                    <div class="movie-meta">
+                        <span class="movie-rating">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            {{ '%.1f'|format(recommended_movie.rate) }}
+                        </span>
+                    </div>
+                    {% if recommended_movie.reason %}
+                    <p class="movie-reason">{{ recommended_movie.reason }}</p>
+                    {% endif %}
+                </div>
             </a>
-            <p>评分：{{ '%.1f'|format(recommended_movie.rate) }}</p>
-            <p class="movie-reason">{{ recommended_movie.reason }}</p>
         </article>
         {% endfor %}
     </div>
 </section>
 
 <section>
-    <div class="section-title">
-        <h2>用户评论</h2>
-        <span>共 {{ comments|length }} 条</span>
+    <div class="section-header">
+        <h2 class="section-title">用户评论</h2>
+        <span class="text-muted text-small">共 {{ comments|length }} 条</span>
     </div>
     {% if comments %}
     <div class="comment-list">
         {% for comment in comments %}
         <article class="comment-card">
-            <strong>{{ comment.username }}</strong>
-            <p>{{ comment.content }}</p>
-            <span>{{ comment.created_at }}</span>
+            <div class="comment-header">
+                <span class="comment-author">{{ comment.username }}</span>
+                <span class="comment-time">{{ comment.created_at }}</span>
+            </div>
+            <p class="comment-text">{{ comment.content }}</p>
         </article>
         {% endfor %}
     </div>
     {% else %}
-    <div class="empty-card">暂无评论。</div>
+    <div class="empty-state">
+        <div class="empty-state-icon">💬</div>
+        <p class="empty-state-text">暂无评论</p>
+    </div>
     {% endif %}
 </section>
 {% endblock %}

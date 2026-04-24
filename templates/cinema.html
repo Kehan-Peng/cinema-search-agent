@@ -49,13 +49,13 @@
         /* 侧边栏 */
         .sidebar {
             width: 260px;
-            background: var(--color-surface);
-            border-right: 1px solid var(--color-border);
+            background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-accent-light) 100%);
+            border-right: 2px solid var(--color-border);
             padding: calc(var(--spacing-unit) * 4) 0;
             position: fixed;
             height: 100vh;
             overflow-y: auto;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
         }
 
         .sidebar-logo {
@@ -64,7 +64,10 @@
             font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.03em;
-            color: var(--color-accent);
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             display: flex;
             align-items: center;
             gap: calc(var(--spacing-unit) * 1.5);
@@ -73,6 +76,7 @@
         .sidebar-logo::before {
             content: "🎬";
             font-size: 24px;
+            -webkit-text-fill-color: initial;
         }
 
         .nav-section {
@@ -110,9 +114,10 @@
         }
 
         .nav-item.active {
-            background: var(--color-accent);
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
             color: white;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
+            transform: translateX(4px);
         }
 
         .nav-item.active .nav-icon {
@@ -361,8 +366,13 @@
             font-size: 13px;
         }
 
-        .table tr:hover {
-            background: var(--color-bg);
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: var(--color-accent-light);
+            transform: scale(1.01);
         }
 
         .table a {
@@ -406,6 +416,18 @@
             background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
             color: white;
             box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .badge-rank.top-10 {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-rank.top-50 {
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
         }
 
         .badge-watched {
@@ -453,25 +475,31 @@
             font-size: 14px;
         }
 
-        /* 浮动按钮 */
-        .fab {
+        /* 浮动按钮组 */
+        .fab-group {
             position: fixed;
             bottom: calc(var(--spacing-unit) * 5);
             right: calc(var(--spacing-unit) * 5);
-            width: 64px;
-            height: 64px;
+            display: flex;
+            flex-direction: column;
+            gap: calc(var(--spacing-unit) * 2);
+            z-index: 100;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
             color: white;
             border: none;
-            font-size: 28px;
             cursor: pointer;
             box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 100;
+            position: relative;
         }
 
         .fab::before {
@@ -496,17 +524,46 @@
         }
 
         .fab:hover {
-            transform: scale(1.1) rotate(90deg);
+            transform: scale(1.1);
             box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5);
         }
 
         .fab:active {
-            transform: scale(0.95) rotate(90deg);
+            transform: scale(0.95);
         }
 
         .fab svg {
             position: relative;
             z-index: 1;
+        }
+
+        .fab.secondary {
+            background: var(--color-surface);
+            color: var(--color-accent);
+            border: 2px solid var(--color-accent);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .fab.secondary::before {
+            display: none;
+        }
+
+        .fab-tooltip {
+            position: absolute;
+            right: calc(100% + calc(var(--spacing-unit) * 2));
+            background: var(--color-text-primary);
+            color: white;
+            padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .fab:hover .fab-tooltip {
+            opacity: 1;
         }
 
         /* 响应式 */
@@ -532,6 +589,16 @@
         <!-- 侧边栏 -->
         <div class="sidebar">
             <div class="sidebar-logo">个人影院</div>
+
+            <div style="padding: 0 calc(var(--spacing-unit) * 3); margin-bottom: calc(var(--spacing-unit) * 4);">
+                <a href="/" style="display: inline-flex; align-items: center; gap: calc(var(--spacing-unit) * 1.5); padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3); border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-md); font-size: 14px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s ease; text-decoration: none; width: 100%;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    返回首页
+                </a>
+            </div>
 
             <div class="nav-section">
                 <div class="nav-label">浏览</div>
@@ -587,12 +654,12 @@
                 <div v-else class="movie-grid">
                     <div v-for="record in watchRecords" :key="record.id" class="movie-card" @click="viewMovie(record.movie.id)">
                         <img :src="record.movie.cover_url || '/static/placeholder.jpg'" :alt="record.movie.title" class="movie-poster">
-                        <div class="movie-title">{{ record.movie.title }}</div>
+                        <div class="movie-title" v-text="record.movie.title"></div>
                         <div class="movie-meta">
                             <div class="star-rating" v-if="record.rating">
                                 <span v-for="n in Math.floor(record.rating / 2)" :key="n">★</span>
                             </div>
-                            <span>{{ record.watch_date }}</span>
+                            <span v-text="record.watch_date"></span>
                         </div>
                     </div>
                 </div>
@@ -614,7 +681,7 @@
                 <div v-if="yearlyStats">
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-value">{{ yearlyStats.watch_count }}</div>
+                            <div class="stat-value" v-text="yearlyStats.watch_count"></div>
                             <div class="stat-label">观影数量</div>
                         </div>
                     </div>
@@ -624,7 +691,7 @@
                         <div class="horizontal-scroll">
                             <div v-for="fav in yearlyStats.favorites" :key="fav.movie.id" class="movie-card" style="min-width: 160px;" @click="viewMovie(fav.movie.id)">
                                 <img :src="fav.movie.cover_url || '/static/placeholder.jpg'" :alt="fav.movie.title" class="movie-poster">
-                                <div class="movie-title">{{ fav.movie.title }}</div>
+                                <div class="movie-title" v-text="fav.movie.title"></div>
                                 <div class="movie-meta">
                                     <div class="star-rating">
                                         <span v-for="n in Math.floor(fav.rating / 2)" :key="n">★</span>
@@ -648,9 +715,9 @@
                 <div v-else class="movie-grid">
                     <div v-for="item in watchlist" :key="item.id" class="movie-card" @click="viewMovie(item.movie.id)">
                         <img :src="item.movie.cover_url || '/static/placeholder.jpg'" :alt="item.movie.title" class="movie-poster">
-                        <div class="movie-title">{{ item.movie.title }}</div>
+                        <div class="movie-title" v-text="item.movie.title"></div>
                         <div class="movie-meta">
-                            <span>{{ item.movie.rate }}</span>
+                            <span v-text="item.movie.rate"></span>
                         </div>
                     </div>
                 </div>
@@ -679,12 +746,24 @@
                         </thead>
                         <tbody>
                             <tr v-for="movie in top250Movies" :key="movie.id">
-                                <td><span class="badge badge-rank">{{ movie.rank }}</span></td>
-                                <td><a href="#" @click.prevent="viewMovie(movie.id)">{{ movie.title }}</a></td>
-                                <td>{{ movie.rate }}</td>
-                                <td>{{ movie.directors }}</td>
-                                <td>{{ movie.types }}</td>
-                                <td>{{ movie.release_year }}</td>
+                                <td>
+                                    <span class="badge badge-rank"
+                                          :class="{'top-10': movie.rank <= 10, 'top-50': movie.rank > 10 && movie.rank <= 50}"
+                                          v-text="movie.rank">
+                                    </span>
+                                </td>
+                                <td><a href="#" @click.prevent="viewMovie(movie.id)" v-text="movie.title"></a></td>
+                                <td>
+                                    <span style="display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--color-accent);">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                        </svg>
+                                        <span v-text="movie.rate"></span>
+                                    </span>
+                                </td>
+                                <td v-text="movie.directors"></td>
+                                <td v-text="movie.types"></td>
+                                <td v-text="movie.release_year"></td>
                                 <td>
                                     <span class="badge badge-watched" v-if="watchStatus[movie.id]">已看</span>
                                     <span class="badge badge-unwatched" v-else>未看</span>
@@ -696,13 +775,29 @@
             </div>
         </div>
 
-        <!-- 浮动按钮 -->
-        <button class="fab" @click="quickRecord" title="快速记录">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-        </button>
+        <!-- 浮动按钮组 -->
+        <div class="fab-group">
+            <button class="fab secondary" @click="goToSearch">
+                <span class="fab-tooltip">搜索电影</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </button>
+            <button class="fab secondary" @click="goToRecommend">
+                <span class="fab-tooltip">个性化推荐</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </button>
+            <button class="fab" @click="quickRecord">
+                <span class="fab-tooltip">快速记录</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <script>
@@ -796,6 +891,12 @@
                 },
                 quickRecord() {
                     alert('快速记录功能开发中...');
+                },
+                goToSearch() {
+                    window.location.href = '/search';
+                },
+                goToRecommend() {
+                    window.location.href = '/recommend';
                 }
             },
             watch: {
